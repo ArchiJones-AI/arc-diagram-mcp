@@ -1,0 +1,318 @@
+{
+  "title": "Netflix Streaming Architecture",
+  "eyebrow": "PUBLIC-SOURCE STUDY · INTERACTIVE ARC DIAGRAM",
+  "diagrams": [
+    {
+      "id": "system",
+      "dialect": "editorial",
+      "title": "System context",
+      "rootColGap": 54,
+      "groups": [
+        {
+          "id": "aws-platform",
+          "title": "AWS · STREAMING CONTROL PLANE",
+          "kind": "block",
+          "color": "lime",
+          "chip": "COMPUTE · STORAGE · CONTROL",
+          "col": 1,
+          "row": 0
+        },
+        {
+          "id": "open-connect",
+          "title": "OPEN CONNECT · CONTENT DELIVERY",
+          "kind": "block",
+          "color": "pink",
+          "chip": "EDGE DELIVERY",
+          "col": 2,
+          "row": 0
+        },
+        {
+          "id": "content-supply",
+          "title": "CONTENT SUPPLY CHAIN",
+          "kind": "frame",
+          "color": "soft",
+          "chip": "PREPARE · PACKAGE · FILL",
+          "col": 1,
+          "row": 1
+        }
+      ],
+      "nodes": [
+        {
+          "id": "member",
+          "title": "Netflix member",
+          "subtitle": "browses · presses play · watches",
+          "eyebrow": "HUMAN",
+          "col": 0,
+          "row": 0,
+          "emphasis": "primary",
+          "detail": "Uses a Netflix application on a supported TV, phone, browser, tablet, or console."
+        },
+        {
+          "id": "netflix-client",
+          "title": "Netflix client",
+          "subtitle": "personalised UI · adaptive player",
+          "eyebrow": "INTELLIGENT CLIENT",
+          "col": 0,
+          "row": 1,
+          "citations": [
+            "https://openconnect.netflix.com/en/appliances/#software"
+          ],
+          "detail": "The device application presents the experience, requests playback control data, and fetches media from a selected Open Connect source."
+        },
+        {
+          "id": "edge-api",
+          "title": "Edge and API layer",
+          "subtitle": "device requests into cloud services",
+          "eyebrow": "ENTRY",
+          "group": "aws-platform",
+          "col": 0,
+          "row": 0,
+          "citations": [
+            "https://aws.amazon.com/solutions/case-studies/innovators/netflix/"
+          ]
+        },
+        {
+          "id": "experience-services",
+          "title": "Experience services",
+          "subtitle": "catalog · profiles · homepage",
+          "eyebrow": "PRODUCT",
+          "group": "aws-platform",
+          "col": 1,
+          "row": 0,
+          "citations": [
+            "https://netflixtechblog.com/learning-a-personalized-homepage-aa8ec670359a"
+          ]
+        },
+        {
+          "id": "personalisation",
+          "title": "Personalisation",
+          "subtitle": "candidate rows · ranking · page assembly",
+          "eyebrow": "MACHINE LEARNING",
+          "group": "aws-platform",
+          "col": 0,
+          "row": 1,
+          "citations": [
+            "https://netflixtechblog.com/learning-a-personalized-homepage-aa8ec670359a"
+          ]
+        },
+        {
+          "id": "playback-control",
+          "title": "Playback control",
+          "subtitle": "session · entitlement · source choice",
+          "eyebrow": "CONTROL SYSTEM",
+          "group": "aws-platform",
+          "col": 1,
+          "row": 1,
+          "citations": [
+            "https://openconnect.netflix.com/en/appliances/#software"
+          ],
+          "detail": "Illustrative functional boundary for the central control system that authorises playback and directs clients to content sources."
+        },
+        {
+          "id": "embedded-oca",
+          "title": "Embedded OCA",
+          "subtitle": "inside an ISP network",
+          "eyebrow": "LOCAL EDGE",
+          "group": "open-connect",
+          "col": 0,
+          "row": 0,
+          "citations": [
+            "https://openconnect.netflix.com/#what-is-open-connect"
+          ]
+        },
+        {
+          "id": "ix-oca",
+          "title": "IX Open Connect site",
+          "subtitle": "peered delivery and resiliency",
+          "eyebrow": "REGIONAL EDGE",
+          "group": "open-connect",
+          "col": 0,
+          "row": 1,
+          "citations": [
+            "https://openconnect.netflix.com/#what-is-open-connect"
+          ]
+        },
+        {
+          "id": "studios",
+          "title": "Studios and partners",
+          "subtitle": "picture · sound · artwork · metadata",
+          "eyebrow": "CONTENT SOURCE",
+          "col": 0,
+          "row": 2
+        },
+        {
+          "id": "media-processing",
+          "title": "Media processing",
+          "subtitle": "encode · package · validate",
+          "eyebrow": "PIPELINE",
+          "group": "content-supply",
+          "col": 0,
+          "row": 0,
+          "detail": "An illustrative boundary for preparing the multiple media representations required by different devices and network conditions."
+        },
+        {
+          "id": "origin-library",
+          "title": "Origin library",
+          "subtitle": "encoded media and artwork",
+          "eyebrow": "SOURCE",
+          "group": "content-supply",
+          "col": 1,
+          "row": 0,
+          "citations": [
+            "https://openconnect.netflix.com/Open-Connect-Briefing-Paper.pdf"
+          ]
+        },
+        {
+          "id": "isp-network",
+          "title": "ISP network",
+          "subtitle": "broadband path to the member",
+          "eyebrow": "PARTNER",
+          "col": 3,
+          "row": 0,
+          "citations": [
+            "https://openconnect.netflix.com/#what-is-open-connect"
+          ]
+        }
+      ],
+      "edges": [
+        { "id": "member-uses", "from": "member", "to": "netflix-client", "kind": "flow" },
+        { "id": "client-api", "from": "netflix-client", "to": "edge-api", "label": "BROWSE + PLAY", "kind": "flow" },
+        { "id": "api-experience", "from": "edge-api", "to": "experience-services", "kind": "flow" },
+        { "id": "experience-personal", "from": "experience-services", "to": "personalisation", "label": "PAGE CANDIDATES", "kind": "flow" },
+        { "id": "api-playback", "from": "edge-api", "to": "playback-control", "label": "START PLAYBACK", "kind": "flow" },
+        { "id": "control-client", "from": "playback-control", "to": "netflix-client", "label": "SOURCES + MANIFEST", "kind": "flow" },
+        { "id": "oca-client", "from": "embedded-oca", "to": "netflix-client", "label": "VIDEO OVER HTTP", "kind": "flow" },
+        { "id": "ix-client", "from": "ix-oca", "to": "netflix-client", "label": "RESILIENT PATH", "kind": "ref" },
+        { "id": "oca-health", "from": "embedded-oca", "to": "playback-control", "label": "HEALTH + LOAD", "kind": "loop" },
+        { "id": "studios-process", "from": "studios", "to": "media-processing", "label": "MASTER ASSETS", "kind": "flow" },
+        { "id": "process-origin", "from": "media-processing", "to": "origin-library", "label": "ENCODED FILES", "kind": "flow" },
+        { "id": "origin-oca", "from": "origin-library", "to": "embedded-oca", "label": "CONTENT FILL", "kind": "ref" },
+        { "id": "origin-ix", "from": "origin-library", "to": "ix-oca", "kind": "ref" },
+        { "id": "open-isp", "from": "embedded-oca", "to": "isp-network", "label": "LOCAL DELIVERY", "kind": "flow" },
+        { "id": "isp-member", "from": "isp-network", "to": "member", "kind": "flow" }
+      ]
+    },
+    {
+      "id": "application",
+      "dialect": "editorial",
+      "title": "Application architecture",
+      "groups": [
+        { "id": "client-family", "title": "CLIENT EXPERIENCE", "kind": "block", "color": "pink", "chip": "DEVICE-SIDE", "col": 0, "row": 0 },
+        { "id": "edge-family", "title": "EDGE + ACCESS", "kind": "block", "color": "cream", "chip": "REQUEST ENTRY", "col": 1, "row": 0 },
+        { "id": "discovery-family", "title": "DISCOVERY", "kind": "block", "color": "lilac", "chip": "FIND SOMETHING", "col": 2, "row": 0 },
+        { "id": "playback-family", "title": "PLAYBACK CONTROL", "kind": "block", "color": "lime", "chip": "PRESS PLAY", "col": 0, "row": 1 },
+        { "id": "content-family", "title": "CONTENT SUPPLY", "kind": "block", "color": "coral", "chip": "PREPARE MEDIA", "col": 1, "row": 1 },
+        { "id": "delivery-family", "title": "OPEN CONNECT DELIVERY", "kind": "block", "color": "mint", "chip": "SERVE THE BITS", "col": 2, "row": 1 },
+        { "id": "data-family", "title": "DATA + LEARNING", "kind": "frame", "color": "soft", "chip": "SIGNALS · MODELS · STATE", "col": 0, "row": 2 }
+      ],
+      "nodes": [
+        { "id": "apps", "title": "Netflix applications", "subtitle": "TV · mobile · web · console", "group": "client-family", "col": 0, "row": 0, "citations": ["https://openconnect.netflix.com/en/appliances/#software"] },
+        { "id": "homepage-ui", "title": "Homepage UI", "subtitle": "rows tailored to member and device", "group": "client-family", "col": 1, "row": 0, "citations": ["https://netflixtechblog.com/learning-a-personalized-homepage-aa8ec670359a"] },
+        { "id": "adaptive-player", "title": "Adaptive player", "subtitle": "selects and requests media segments", "group": "client-family", "col": 0, "row": 1, "detail": "Illustrative client responsibility derived from the documented intelligent-client and direct HTTP delivery model." },
+        { "id": "client-telemetry", "title": "Client telemetry", "subtitle": "playback experience signals", "group": "client-family", "col": 1, "row": 1 },
+
+        { "id": "api-gateway", "title": "API gateway", "subtitle": "routes device requests", "group": "edge-family", "col": 0, "row": 0 },
+        { "id": "identity", "title": "Identity and session", "subtitle": "member · profile · device", "group": "edge-family", "col": 1, "row": 0 },
+        { "id": "device-context", "title": "Device context", "subtitle": "capabilities and presentation limits", "group": "edge-family", "col": 0, "row": 1, "citations": ["https://netflixtechblog.com/learning-a-personalized-homepage-aa8ec670359a"] },
+
+        { "id": "catalog", "title": "Catalog service", "subtitle": "titles · availability · metadata", "group": "discovery-family", "col": 0, "row": 0 },
+        { "id": "search", "title": "Search", "subtitle": "member intent into titles", "group": "discovery-family", "col": 1, "row": 0 },
+        { "id": "candidate-rows", "title": "Candidate generation", "subtitle": "relevant row possibilities", "group": "discovery-family", "col": 0, "row": 1, "citations": ["https://netflixtechblog.com/learning-a-personalized-homepage-aa8ec670359a"] },
+        { "id": "ranking", "title": "Row and title ranking", "subtitle": "relevance · diversity · freshness", "group": "discovery-family", "col": 1, "row": 1, "citations": ["https://netflixtechblog.com/learning-a-personalized-homepage-aa8ec670359a"] },
+        { "id": "page-assembly", "title": "Page assembly", "subtitle": "filter · deduplicate · format", "group": "discovery-family", "col": 0, "row": 2, "citations": ["https://netflixtechblog.com/learning-a-personalized-homepage-aa8ec670359a"] },
+
+        { "id": "playback-session", "title": "Playback session", "subtitle": "coordinates the play request", "group": "playback-family", "col": 0, "row": 0 },
+        { "id": "entitlement", "title": "Entitlement and licence", "subtitle": "plan · concurrency · rights", "group": "playback-family", "col": 1, "row": 0, "citations": ["https://netflixtechblog.com/https-medium-com-netflix-techblog-simone-a-distributed-simulation-service-b2c85131ca1b"] },
+        { "id": "manifest", "title": "Manifest composition", "subtitle": "playable representations and sources", "group": "playback-family", "col": 0, "row": 1, "detail": "Illustrative functional boundary for returning the media choices a client needs to start playback." },
+        { "id": "steering", "title": "Content steering", "subtitle": "directs clients to a source", "group": "playback-family", "col": 1, "row": 1, "citations": ["https://openconnect.netflix.com/en/appliances/#software"] },
+
+        { "id": "ingest", "title": "Asset ingest", "subtitle": "picture · sound · artwork · metadata", "group": "content-family", "col": 0, "row": 0 },
+        { "id": "encoding", "title": "Encoding", "subtitle": "multiple device and network representations", "group": "content-family", "col": 1, "row": 0, "citations": ["https://openconnect.netflix.com/Open-Connect-Briefing-Paper.pdf"] },
+        { "id": "packaging", "title": "Packaging and validation", "subtitle": "playable media sets", "group": "content-family", "col": 0, "row": 1 },
+        { "id": "origin", "title": "Origin media library", "subtitle": "source for edge fills", "group": "content-family", "col": 1, "row": 1, "citations": ["https://openconnect.netflix.com/Open-Connect-Briefing-Paper.pdf"] },
+
+        { "id": "fill-control", "title": "Fill control", "subtitle": "places content near expected demand", "group": "delivery-family", "col": 0, "row": 0, "citations": ["https://openconnect.netflix.com/#how-to-get-started"] },
+        { "id": "routing-intelligence", "title": "Routing intelligence", "subtitle": "topology · health · load", "group": "delivery-family", "col": 1, "row": 0, "citations": ["https://openconnect.netflix.com/en/appliances/#software"] },
+        { "id": "embedded-edge", "title": "Embedded OCA", "subtitle": "local ISP cache", "group": "delivery-family", "col": 0, "row": 1, "citations": ["https://openconnect.netflix.com/#what-is-open-connect"] },
+        { "id": "ix-edge", "title": "IX OCA", "subtitle": "peered regional cache", "group": "delivery-family", "col": 1, "row": 1, "citations": ["https://openconnect.netflix.com/#what-is-open-connect"] },
+        { "id": "http-serving", "title": "HTTP media serving", "subtitle": "NGINX sends audio and video", "group": "delivery-family", "col": 0, "row": 2, "citations": ["https://openconnect.netflix.com/en/appliances/#software"] },
+
+        { "id": "member-store", "title": "Member and profile state", "subtitle": "identity and viewing context", "group": "data-family", "col": 0, "row": 0 },
+        { "id": "catalog-store", "title": "Catalog metadata", "subtitle": "title and availability facts", "group": "data-family", "col": 1, "row": 0 },
+        { "id": "events", "title": "Viewing events", "subtitle": "interaction and playback signals", "group": "data-family", "col": 2, "row": 0 },
+        { "id": "models", "title": "Learning and experiments", "subtitle": "models · metrics · A/B decisions", "group": "data-family", "col": 3, "row": 0, "citations": ["https://netflixtechblog.com/learning-a-personalized-homepage-aa8ec670359a"] }
+      ],
+      "edges": [
+        { "id": "apps-gateway", "from": "apps", "to": "api-gateway", "kind": "flow" },
+        { "id": "gateway-identity", "from": "api-gateway", "to": "identity", "kind": "flow" },
+        { "id": "gateway-catalog", "from": "api-gateway", "to": "catalog", "kind": "flow" },
+        { "id": "gateway-page", "from": "api-gateway", "to": "page-assembly", "kind": "flow" },
+        { "id": "catalog-search", "from": "catalog", "to": "search", "kind": "flow" },
+        { "id": "candidate-ranking", "from": "candidate-rows", "to": "ranking", "kind": "flow" },
+        { "id": "ranking-page", "from": "ranking", "to": "page-assembly", "kind": "flow" },
+        { "id": "page-home", "from": "page-assembly", "to": "homepage-ui", "label": "PERSONALISED PAGE", "kind": "flow" },
+        { "id": "models-candidate", "from": "models", "to": "candidate-rows", "kind": "flow" },
+        { "id": "events-models", "from": "events", "to": "models", "label": "LEARN", "kind": "loop" },
+        { "id": "player-session", "from": "adaptive-player", "to": "playback-session", "label": "PRESS PLAY", "kind": "flow" },
+        { "id": "session-entitlement", "from": "playback-session", "to": "entitlement", "kind": "flow" },
+        { "id": "session-manifest", "from": "playback-session", "to": "manifest", "kind": "flow" },
+        { "id": "manifest-steering", "from": "manifest", "to": "steering", "kind": "flow" },
+        { "id": "steering-player", "from": "steering", "to": "adaptive-player", "label": "SOURCES", "kind": "flow" },
+        { "id": "ingest-encoding", "from": "ingest", "to": "encoding", "kind": "flow" },
+        { "id": "encoding-packaging", "from": "encoding", "to": "packaging", "kind": "flow" },
+        { "id": "packaging-origin", "from": "packaging", "to": "origin", "kind": "flow" },
+        { "id": "origin-fill", "from": "origin", "to": "fill-control", "label": "CONTENT FILL", "kind": "ref" },
+        { "id": "fill-embedded", "from": "fill-control", "to": "embedded-edge", "kind": "ref" },
+        { "id": "fill-ix", "from": "fill-control", "to": "ix-edge", "kind": "ref" },
+        { "id": "routing-steering", "from": "routing-intelligence", "to": "steering", "label": "SOURCE HEALTH", "kind": "loop" },
+        { "id": "embedded-serving", "from": "embedded-edge", "to": "http-serving", "kind": "flow" },
+        { "id": "ix-serving", "from": "ix-edge", "to": "http-serving", "kind": "flow" },
+        { "id": "serving-player", "from": "http-serving", "to": "adaptive-player", "label": "VIDEO BITS", "kind": "flow" },
+        { "id": "telemetry-events", "from": "client-telemetry", "to": "events", "kind": "flow" },
+        { "id": "member-identity", "from": "member-store", "to": "identity", "kind": "ref" },
+        { "id": "catalog-data", "from": "catalog-store", "to": "catalog", "kind": "ref" }
+      ]
+    },
+    {
+      "id": "runtime",
+      "dialect": "aws",
+      "title": "Press play · runtime",
+      "groups": [
+        { "id": "device", "title": "MEMBER DEVICE", "kind": "aws", "color": "soft", "col": 0, "row": 0 },
+        { "id": "aws-control", "title": "AWS · CONTROL PLANE", "kind": "aws", "color": "soft", "col": 1, "row": 0 },
+        { "id": "open-connect-runtime", "title": "OPEN CONNECT", "kind": "aws", "color": "soft", "col": 2, "row": 0 },
+        { "id": "isp-runtime", "title": "ISP NETWORK", "kind": "aws", "color": "soft", "col": 3, "row": 0 }
+      ],
+      "nodes": [
+        { "id": "player", "title": "Netflix player", "subtitle": "adaptive client", "glyph": "N", "group": "device", "col": 0, "row": 0, "steps": [1, 5, 6, 7], "citations": ["https://openconnect.netflix.com/en/appliances/#software"] },
+        { "id": "gateway", "title": "API edge", "subtitle": "request entry", "glyph": "E", "group": "aws-control", "col": 0, "row": 0, "steps": [1, 2] },
+        { "id": "playback", "title": "Playback control", "subtitle": "session coordinator", "glyph": "P", "group": "aws-control", "col": 1, "row": 0, "steps": [2, 3, 4] },
+        { "id": "rights", "title": "Entitlement", "subtitle": "plan and rights", "glyph": "R", "group": "aws-control", "col": 1, "row": 1, "steps": [3], "citations": ["https://netflixtechblog.com/https-medium-com-netflix-techblog-simone-a-distributed-simulation-service-b2c85131ca1b"] },
+        { "id": "source-control", "title": "Source steering", "subtitle": "topology · health · load", "glyph": "S", "group": "aws-control", "col": 2, "row": 0, "steps": [4, 5, 8], "citations": ["https://openconnect.netflix.com/en/appliances/#software"] },
+        { "id": "ix-cache", "title": "IX OCA", "subtitle": "regional fallback", "glyph": "X", "group": "open-connect-runtime", "col": 0, "row": 0, "citations": ["https://openconnect.netflix.com/deploymentguide.pdf"] },
+        { "id": "embedded-cache", "title": "Embedded OCA", "subtitle": "local content source", "glyph": "O", "group": "isp-runtime", "col": 0, "row": 0, "steps": [6, 7, 8], "citations": ["https://openconnect.netflix.com/#what-is-open-connect"] }
+      ],
+      "edges": [
+        { "id": "start", "from": "player", "to": "gateway", "label": "START PLAYBACK", "kind": "flow", "stepNo": 1 },
+        { "id": "route-play", "from": "gateway", "to": "playback", "label": "PLAY REQUEST", "kind": "flow", "stepNo": 2 },
+        { "id": "check-rights", "from": "playback", "to": "rights", "label": "AUTHORISE", "kind": "flow", "stepNo": 3 },
+        { "id": "choose-source", "from": "playback", "to": "source-control", "label": "CHOOSE SOURCE", "kind": "flow", "stepNo": 4 },
+        { "id": "return-sources", "from": "source-control", "to": "player", "label": "MANIFEST + SOURCES", "kind": "flow", "stepNo": 5 },
+        { "id": "segment-request", "from": "player", "to": "embedded-cache", "label": "HTTPS SEGMENTS", "kind": "flow", "stepNo": 6 },
+        { "id": "video-stream", "from": "embedded-cache", "to": "player", "label": "AUDIO + VIDEO", "kind": "flow", "stepNo": 7, "emphasis": "bold" },
+        { "id": "health-feedback", "from": "embedded-cache", "to": "source-control", "label": "HEALTH + LOAD", "kind": "loop", "stepNo": 8 },
+        { "id": "fallback", "from": "player", "to": "ix-cache", "label": "IF CONTENT IS NOT LOCAL", "kind": "ref" }
+      ],
+      "steps": [
+        { "n": 1, "text": "The member presses play and the **Netflix player** sends a start request through the **API edge**.", "nodes": ["player", "gateway"], "edges": ["start"] },
+        { "n": 2, "text": "The **API edge** routes the request to **playback control**.", "nodes": ["gateway", "playback"], "edges": ["route-play"] },
+        { "n": 3, "text": "**Playback control** checks the member plan, rights, and concurrent-stream conditions with **entitlement**.", "nodes": ["playback", "rights"], "edges": ["check-rights"] },
+        { "n": 4, "text": "**Playback control** asks **source steering** for an appropriate content source.", "nodes": ["playback", "source-control"], "edges": ["choose-source"] },
+        { "n": 5, "text": "**Source steering** returns the playable representations and content sources to the **Netflix player**.", "nodes": ["source-control", "player"], "edges": ["return-sources"] },
+        { "n": 6, "text": "The **Netflix player** requests media segments from an **embedded OCA** close to the member.", "nodes": ["player", "embedded-cache"], "edges": ["segment-request"] },
+        { "n": 7, "text": "The **embedded OCA** serves audio and video directly to the **Netflix player** over HTTP.", "nodes": ["embedded-cache", "player"], "edges": ["video-stream"] },
+        { "n": 8, "text": "The **embedded OCA** reports health and load so **source steering** can incorporate current delivery conditions into later decisions.", "nodes": ["embedded-cache", "source-control"], "edges": ["health-feedback"] }
+      ]
+    }
+  ]
+}

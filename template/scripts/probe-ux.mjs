@@ -658,16 +658,29 @@ try {
   await page.mouse.click(60, 400);
   await page.waitForTimeout(300);
   const linePoint = await page.evaluate(() => {
-    const path = document.querySelector('.react-flow__edge .react-flow__edge-interaction')
-      ?? document.querySelector('.react-flow__edge .dg-edge-path');
-    if (!path || !path.getPointAtLength) return null;
-    const point = path.getPointAtLength(path.getTotalLength() * 0.35);
-    const svg = path.ownerSVGElement;
-    const matrix = path.getScreenCTM();
-    const screen = svg.createSVGPoint();
-    screen.x = point.x; screen.y = point.y;
-    const mapped = screen.matrixTransform(matrix);
-    return { x: mapped.x, y: mapped.y };
+    const paths = [...document.querySelectorAll('.react-flow__edge .react-flow__edge-interaction')];
+    const fractions = [0.5, 0.35, 0.65, 0.2, 0.8, 0.1, 0.9];
+    for (const path of paths) {
+      if (!path.getPointAtLength) continue;
+      const length = path.getTotalLength();
+      const matrix = path.getScreenCTM();
+      const svg = path.ownerSVGElement;
+      if (!matrix || !svg) continue;
+      for (const fraction of fractions) {
+        const point = path.getPointAtLength(length * fraction);
+        const screen = svg.createSVGPoint();
+        screen.x = point.x; screen.y = point.y;
+        const mapped = screen.matrixTransform(matrix);
+        const hitStack = document.elementsFromPoint(mapped.x, mapped.y);
+        // Dense diagrams can place a card or label over an arbitrary point on
+        // the first edge. Only return a point where this edge's interaction
+        // corridor is actually the browser's hit target.
+        if (hitStack.some((element) => element === path)) {
+          return { x: mapped.x, y: mapped.y };
+        }
+      }
+    }
+    return null;
   });
   if (linePoint) {
     await page.mouse.click(linePoint.x, linePoint.y);

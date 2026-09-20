@@ -2,6 +2,17 @@
 
 An MCP server that creates polished, interactive architecture-diagram applications instead of returning a diagram string.
 
+## Example: Netflix “Press play”
+
+[![Complete arc-diagram interface showing an illustrative Netflix streaming architecture and its eight-step runtime narrative](docs/images/netflix-arc-diagram-ui.png)](docs/images/netflix-arc-diagram-ui.png)
+
+The [complete Netflix example](examples/netflix-project.json) generates three connected views: system context, application architecture, and the numbered runtime journey from pressing play to Open Connect delivery. It is an illustrative reconstruction from public material—not a claim to reproduce Netflix's full internal design—grounded in the [Open Connect overview](https://openconnect.netflix.com/), [appliance and software architecture](https://openconnect.netflix.com/en/appliances/), and [AWS case study](https://aws.amazon.com/solutions/case-studies/innovators/netflix/).
+
+```bash
+npm run build
+node dist/index.js create examples/netflix-project.json /absolute/path/to/netflix-architecture
+```
+
 Give an MCP-capable agent a system description, repository, or design document. The agent distils the source into the arc-diagram contract; this server validates it and scaffolds a complete React Flow application with:
 
 - system-context, application, runtime, lifecycle, pyramid, and reference-model dialects;
@@ -73,7 +84,7 @@ npm run dev
 4. Call `create_arc_diagram_project` with an absolute, empty destination.
 5. Build and run the generated project's light/dark probes before taking its first visual baseline.
 
-See [the authoring contract](docs/contract.md) and [the complete example](examples/minimal-project.json).
+See [the authoring contract](docs/contract.md), the [minimal contract example](examples/minimal-project.json), and the [Netflix showcase](examples/netflix-project.json).
 
 ## Development
 

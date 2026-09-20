@@ -5,6 +5,7 @@ import path from 'node:path';
 import { validateProjectSpec } from '../src/validation.js';
 
 const fixturePath = path.resolve('examples/minimal-project.json');
+const netflixFixturePath = path.resolve('examples/netflix-project.json');
 
 async function fixture(): Promise<Record<string, unknown>> {
   return JSON.parse(await readFile(fixturePath, 'utf8')) as Record<string, unknown>;
@@ -12,6 +13,13 @@ async function fixture(): Promise<Record<string, unknown>> {
 
 test('the complete example satisfies the structural contract', async () => {
   const result = validateProjectSpec(await fixture());
+  assert.equal(result.valid, true, result.errors.join('\n'));
+  assert.deepEqual(result.errors, []);
+});
+
+test('the Netflix showcase satisfies the structural contract', async () => {
+  const spec = JSON.parse(await readFile(netflixFixturePath, 'utf8')) as Record<string, unknown>;
+  const result = validateProjectSpec(spec);
   assert.equal(result.valid, true, result.errors.join('\n'));
   assert.deepEqual(result.errors, []);
 });
