@@ -1,0 +1,50 @@
+{
+  "name": "arc-diagram-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for creating validated, interactive React Flow architecture diagram projects",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "arc-diagram-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "template",
+    "docs",
+    "examples",
+    "mcp-settings-example.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "test": "npm run build && node --import tsx --test test/*.test.ts",
+    "check": "npm test",
+    "prepack": "npm run check"
+  },
+  "keywords": [
+    "mcp",
+    "architecture",
+    "diagram",
+    "react-flow",
+    "arc42",
+    "model-context-protocol"
+  ],
+  "author": "Chris Jones",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "title": "Checkout Platform",
+  "eyebrow": "EXAMPLE · INTERACTIVE ARCHITECTURE",
+  "diagrams": [
+    {
+      "id": "system",
+      "dialect": "editorial",
+      "title": "System context",
+      "groups": [
+        {
+          "id": "platform",
+          "title": "CHECKOUT PLATFORM",
+          "kind": "block",
+          "color": "lime",
+          "col": 1,
+          "row": 0
+        }
+      ],
+      "nodes": [
+        {
+          "id": "shopper",
+          "title": "Shopper",
+          "subtitle": "starts and confirms a purchase",
+          "eyebrow": "ACTOR",
+          "col": 0,
+          "row": 0,
+          "emphasis": "primary"
+        },
+        {
+          "id": "checkout",
+          "title": "Checkout experience",
+          "subtitle": "basket · delivery · payment",
+          "eyebrow": "SYSTEM",
+          "group": "platform",
+          "col": 0,
+          "row": 0,
+          "detail": "Coordinates the customer-facing purchase journey."
+        },
+        {
+          "id": "payments",
+          "title": "Payment provider",
+          "subtitle": "authorisation and capture",
+          "eyebrow": "EXTERNAL",
+          "col": 2,
+          "row": 0
+        }
+      ],
+      "edges": [
+        { "id": "start", "from": "shopper", "to": "checkout", "label": "CHECK OUT", "kind": "flow" },
+        { "id": "authorise", "from": "checkout", "to": "payments", "label": "AUTHORISE", "kind": "flow" }
+      ]
+    },
+    {
+      "id": "application",
+      "dialect": "editorial",
+      "title": "Application architecture",
+      "groups": [
+        { "id": "experience", "title": "EXPERIENCE", "kind": "block", "color": "lilac", "col": 0, "row": 0 },
+        { "id": "services", "title": "CHECKOUT SERVICES", "kind": "block", "color": "cream", "col": 1, "row": 0 },
+        { "id": "data", "title": "DATA", "kind": "block", "color": "mint", "col": 2, "row": 0 }
+      ],
+      "nodes": [
+        { "id": "web", "title": "Web checkout", "subtitle": "guided purchase journey", "group": "experience", "col": 0, "row": 0 },
+        { "id": "api", "title": "Checkout API", "subtitle": "coordinates the transaction", "group": "services", "col": 0, "row": 0 },
+        { "id": "payment-adapter", "title": "Payment adapter", "subtitle": "provider-neutral contract", "group": "services", "col": 0, "row": 1 },
+        { "id": "orders", "title": "Order store", "subtitle": "purchase state", "group": "data", "col": 0, "row": 0 }
+      ],
+      "edges": [
+        { "id": "web-api", "from": "web", "to": "api", "kind": "flow" },
+        { "id": "api-payment", "from": "api", "to": "payment-adapter", "kind": "flow" },
+        { "id": "api-orders", "from": "api", "to": "orders", "kind": "flow" }
+      ]
+    },
+    {
+      "id": "runtime",
+      "dialect": "aws",
+      "title": "Purchase runtime",
+      "groups": [
+        { "id": "browser", "title": "SHOPPER DEVICE", "kind": "aws", "color": "soft", "col": 0, "row": 0 },
+        { "id": "cloud", "title": "CHECKOUT PLATFORM", "kind": "aws", "color": "soft", "col": 1, "row": 0 }
+      ],
+      "nodes": [
+        { "id": "client", "title": "Checkout page", "glyph": "W", "group": "browser", "col": 0, "row": 0, "steps": [1, 4] },
+        { "id": "gateway", "title": "API gateway", "glyph": "G", "group": "cloud", "col": 0, "row": 0, "steps": [1, 4] },
+        { "id": "orchestrator", "title": "Checkout service", "glyph": "C", "group": "cloud", "col": 1, "row": 0, "steps": [2, 3] },
+        { "id": "provider", "title": "Payment provider", "glyph": "P", "col": 2, "row": 0, "steps": [2, 3] }
+      ],
+      "edges": [
+        { "id": "submit", "from": "client", "to": "gateway", "label": "SUBMIT", "kind": "flow", "stepNo": 1 },
+        { "id": "route", "from": "gateway", "to": "orchestrator", "kind": "flow" },
+        { "id": "request", "from": "orchestrator", "to": "provider", "label": "AUTHORISE", "kind": "flow", "stepNo": 2 },
+        { "id": "decision", "from": "provider", "to": "orchestrator", "label": "DECISION", "kind": "flow", "stepNo": 3 },
+        { "id": "result", "from": "gateway", "to": "client", "label": "RESULT", "kind": "flow", "stepNo": 4 }
+      ],
+      "steps": [
+        { "n": 1, "text": "The **checkout page** submits the purchase through the **API gateway**.", "nodes": ["client", "gateway"], "edges": ["submit"] },
+        { "n": 2, "text": "The **checkout service** requests authorisation from the **payment provider**.", "nodes": ["orchestrator", "provider"], "edges": ["request"] },
+        { "n": 3, "text": "The **payment provider** returns its decision.", "nodes": ["provider", "orchestrator"], "edges": ["decision"] },
+        { "n": 4, "text": "The **API gateway** returns the result to the **checkout page**.", "nodes": ["gateway", "client"], "edges": ["result"] }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "_comment": [
+    "Copy to canvas-text.rules.json and edit. `banned` runs over src/data/*.ts;",
+    "`bundleSafe` is the subset re-run over dist-offline/index.html, where",
+    "minified identifiers and font bytes collide with word-level rules, so it",
+    "holds only identifier and phrase greps that cannot collide.",
+    "Rules are \"/pattern/flags\" or a bare pattern (defaults to gi).",
+    "`values.toConfirmMap` ties an open value in a YAML source of truth to the exact",
+    "node ids that must carry status: 'to-confirm'. Keep that map EXPLICIT.",
+    "`values` is OPTIONAL and is left OUT by default \u2014 a configured path that does not",
+    "exist is a finding, not a crash. To enable it, rename \"_valuesExample\" to \"values\",",
+    "point `file` at your YAML source of truth and list the node ids per open key.",
+    "`vocabularyFile` is optional: without it the linter auto-detects the one",
+    "src/data view that declares a legend, and fails if there are none or many."
+  ],
+  "banned": [
+    "/\\bdoc [0-9]/gi",
+    "/\\bQ[0-9]+\\b/g",
+    "/\\b(?:CP|DC|US|EPIC)-[0-9]/g",
+    "/\\broadmap\\b/gi",
+    "/\\bphase [0-9]/gi",
+    "/\\bbacklog\\b/gi",
+    "/\\bto be (?:built|decided)\\b/gi"
+  ],
+  "bundleSafe": [
+    "/\\bdoc [0-9]/gi",
+    "/\\b(?:CP|DC|US|EPIC)-[0-9]/g"
+  ],
+  "_valuesExample": {
+    "file": "../values.yaml",
+    "toConfirmMap": {
+      "model_endpoint.account": [
+        "o-endpoint"
+      ]
+    }
+  }
+}

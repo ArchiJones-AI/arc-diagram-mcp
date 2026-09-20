@@ -1,0 +1,2568 @@
+:root {
+  color-scheme: light;
+  --dg-ink: #000000;
+  --dg-canvas: #ffffff;
+  --dg-surface-soft: #f7f7f5;
+  --dg-hairline: #e6e6e6;
+  --dg-hairline-soft: #f1f1f1;
+  --dg-block-lime: #dceeb1;
+  --dg-block-lilac: #c5b0f4;
+  --dg-block-cream: #f4ecd6;
+  --dg-block-mint: #c8e6cd;
+  --dg-block-pink: #efd4d4;
+  --dg-block-coral: #f3c9b6;
+  --dg-block-navy: #1f1d3d;
+  --dg-inverse-ink: #ffffff;
+  --dg-accent-magenta: #ff3d8b;
+  --dg-success: #1ea64a;
+  --dg-edge: #9a9a9a;
+  --dg-dots: #dddddd;
+  --dg-island-canvas: #ffffff;
+  --dg-island-soft: #f7f7f5;
+  --dg-island-ink: #000000;
+  --dg-island-hairline: #e6e6e6;
+  --dg-card-surface: var(--dg-canvas);
+  --dg-card-ink: var(--dg-ink);
+  /* Chrome surface + muted ink. Read by .dg-tool, .dg-spacing-value,
+     .dg-download-menu, .dg-menu, .dg-style-bar and .dg-edit-hint. Both were
+     CONSUMED but never DEFINED before 2026-09-15, so every one of those
+     backgrounds resolved to transparent. */
+  --dg-surface: #ffffff;
+  --dg-ink-soft: #6a6a6a;
+  /* The canvas field: the board the diagram sits on, deliberately distinct
+     from --dg-canvas (which is aliased as --dg-card-surface and paints cards,
+     panels and rails — moving it would repaint half the app). */
+  --dg-canvas-field: #fbfbfa;
+  --dg-canvas-dots: #d2d2ce;
+  --dg-canvas-frame: rgba(0, 0, 0, .07);
+  --dg-card-hairline: var(--dg-hairline);
+  --dg-neighbor: #8a8a8a;
+  --dg-frame-chip-bg: rgba(0, 0, 0, .08);
+  --dg-edge-label-bg: rgba(255, 255, 255, .92);
+  --dg-selected-surface: var(--dg-ink);
+  --dg-selected-ink: var(--dg-inverse-ink);
+  --dg-step-fill: var(--dg-ink);
+  --dg-step-ink: var(--dg-inverse-ink);
+  --dg-aws-tile-soft: var(--dg-surface-soft);
+  --dg-font-body: 'Inter Variable', Inter, 'SF Pro Display', system-ui, sans-serif;
+  --dg-font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --dg-ink: #ffffff;
+  --dg-canvas: #0e0e0e;
+  --dg-surface-soft: #1a1a19;
+  --dg-hairline: #2e2e2e;
+  --dg-hairline-soft: #232323;
+  --dg-edge: #8a8a8a;
+  --dg-dots: #262626;
+  --dg-card-surface: #161616;
+  --dg-card-ink: #ffffff;
+  --dg-surface: #161616;
+  --dg-ink-soft: #9a9a9a;
+  --dg-canvas-field: #17181a;
+  --dg-canvas-dots: #2b2d31;
+  --dg-canvas-frame: rgba(255, 255, 255, .08);
+  --dg-card-hairline: #3a3a3a;
+  --dg-frame-chip-bg: rgba(255, 255, 255, .12);
+  --dg-edge-label-bg: rgba(14, 14, 14, .92);
+  --dg-selected-surface: var(--dg-ink);
+  --dg-selected-ink: var(--dg-island-ink);
+  --dg-step-fill: var(--dg-ink);
+  --dg-step-ink: var(--dg-island-ink);
+  --dg-aws-tile-soft: var(--dg-island-soft);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--dg-canvas);
+  color: var(--dg-ink);
+  font-family: var(--dg-font-body);
+  font-weight: 400;
+}
+
+button {
+  color: inherit;
+  font: inherit;
+}
+
+.dg-app {
+  display: grid;
+  /* A wide topbar (or rail) must never inflate the grid: min-content on the old top-bar tab strip (retired 2026-09-03 for the left diagram rail) once
+     pushed the canvas to 3971px inside a 1920px viewport, so fitView framed the
+     wrong window and every export came out clipped. */
+  width: 100vw;
+  max-width: 100vw;
+  overflow: hidden;
+  grid-template-columns: minmax(0, 1fr);
+  height: 100%;
+  grid-template-rows: 52px minmax(0, 1fr);
+  background: var(--dg-canvas);
+}
+
+.dg-topbar {
+  z-index: 20;
+  display: flex;
+  height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 20px 0 22px;
+  border-bottom: 1px solid var(--dg-hairline);
+  background: var(--dg-canvas);
+}
+
+.dg-brand {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 13px;
+  white-space: nowrap;
+}
+
+.dg-brand span,
+.dg-detail-eyebrow,
+.dg-detail-steps span,
+.dg-steps-panel header > span {
+  font-family: var(--dg-font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.dg-brand h1 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -.015em;
+}
+
+.dg-topbar-actions {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.dg-topbar-current {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.dg-topbar-current span {
+  font-family: var(--dg-font-mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  opacity: .7;
+  white-space: nowrap;
+}
+
+.dg-topbar-current strong {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dg-theme-toggle {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 50%;
+  background: var(--dg-canvas);
+  color: var(--dg-ink);
+  cursor: pointer;
+}
+
+.dg-theme-toggle:hover,
+.dg-theme-toggle:focus-visible {
+  border-color: var(--dg-ink);
+  background: var(--dg-surface-soft);
+  outline: none;
+}
+
+.dg-theme-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.dg-body {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  /* The third track is 0 when the inspector is hidden or merged into the
+     rail, so the canvas takes the whole width with no empty column. */
+  grid-template-columns: auto minmax(0, 1fr) var(--dg-side-w, 0px);
+}
+
+.dg-diagram-rail {
+  display: flex;
+  width: 260px;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  border-right: 1px solid var(--dg-hairline);
+  background: var(--dg-canvas);
+}
+
+.dg-diagram-rail[data-collapsed="true"] {
+  width: 40px;
+}
+
+.dg-diagram-rail[data-collapsed="true"] .dg-diagram-list,
+.dg-diagram-rail[data-collapsed="true"] .dg-diagram-rail-title {
+  display: none;
+}
+
+.dg-diagram-rail-head {
+  display: flex;
+  height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 8px 0 14px;
+  border-bottom: 1px solid var(--dg-hairline);
+}
+
+.dg-diagram-rail-title {
+  font-family: var(--dg-font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: inherit;
+  text-transform: uppercase;
+}
+
+.dg-diagram-list {
+  min-height: 0;
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 8px 0 16px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.dg-diagram-section {
+  padding: 10px 14px 4px;
+  font-family: var(--dg-font-mono);
+  font-size: 9.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  opacity: .7;
+}
+
+.dg-diagram-item {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 14px;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.dg-diagram-item:hover,
+.dg-diagram-item:focus-visible {
+  background: var(--dg-selected-surface);
+  outline: none;
+}
+
+.dg-diagram-item[aria-current="true"] {
+  border-left-color: var(--dg-ink);
+  background: var(--dg-selected-surface);
+  color: var(--dg-selected-ink);
+}
+
+.dg-diagram-no {
+  min-width: 1.6em;
+  flex: none;
+  font-family: var(--dg-font-mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  opacity: .75;
+}
+
+.dg-diagram-title {
+  min-width: 0;
+}
+
+.dg-canvas {
+  /* position: relative is load-bearing for the absolutely-placed style bar
+     and the edit hint — without it both anchor to the viewport, which is why
+     the hint used to centre on the window rather than the canvas column. */
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--dg-hairline);
+  background: var(--dg-canvas-field);
+  box-shadow: inset 0 0 0 1px var(--dg-canvas-frame);
+}
+
+.dg-canvas .react-flow__pane {
+  cursor: grab;
+}
+
+.dg-canvas .react-flow__pane:active {
+  cursor: grabbing;
+}
+
+.dg-canvas .react-flow__node-diagramNode,
+.dg-canvas .react-flow__node-awsTile {
+  cursor: pointer;
+}
+
+.dg-canvas .react-flow__node-diagramGroup {
+  pointer-events: none !important;
+}
+
+.dg-canvas .react-flow__controls {
+  overflow: hidden;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.dg-canvas .react-flow__controls-button {
+  border-bottom-color: var(--dg-hairline);
+  background: var(--dg-canvas);
+  color: var(--dg-ink);
+}
+
+.dg-canvas .react-flow__controls-button:hover {
+  background: var(--dg-surface-soft);
+}
+
+.dg-side-rail {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  align-items: center;
+  flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+  padding: 20px;
+  background: var(--dg-surface-soft);
+}
+
+/* Drag strip on the inspector's inner edge. Wider hit area than its visible
+   hairline, because a 1px target is not a target. */
+.dg-side-resizer {
+  position: sticky;
+  top: 0;
+  left: -20px;
+  z-index: 3;
+  width: 10px;
+  height: 100%;
+  margin: -20px 0 -100% -26px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.dg-side-resizer::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 4px;
+  width: 2px;
+  background: transparent;
+  content: '';
+  transition: background 120ms ease;
+}
+
+.dg-side-resizer:hover::after,
+.dg-side-resizer:focus-visible::after {
+  background: var(--dg-ink);
+}
+
+.dg-side-resizer:focus-visible {
+  outline: none;
+}
+
+/* Merged mode: the inspector rides under the diagram list inside the left
+   rail, each half its own scroll track at 50%. */
+.dg-rail-inspector {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 50%;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 12px 10px 16px;
+  border-top: 1px solid var(--dg-hairline);
+  background: var(--dg-surface-soft);
+}
+
+.dg-diagram-rail:has(.dg-rail-inspector) {
+  width: 330px;
+}
+
+.dg-diagram-rail:has(.dg-rail-inspector) .dg-diagram-list {
+  flex: 1 1 50%;
+}
+
+/* Group blocks */
+
+.dg-group {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.dg-group-block {
+  border: 0;
+  border-radius: 24px;
+  color: var(--dg-island-ink);
+}
+
+.dg-group-frame {
+  border: 1px solid var(--dg-hairline);
+  border-radius: 24px;
+  background: var(--dg-surface-soft);
+}
+
+.dg-group-block.dg-color-lime {
+  background: var(--dg-block-lime);
+}
+
+.dg-group-block.dg-color-lilac {
+  background: var(--dg-block-lilac);
+}
+
+.dg-group-block.dg-color-cream {
+  background: var(--dg-block-cream);
+}
+
+.dg-group-block.dg-color-mint {
+  background: var(--dg-block-mint);
+}
+
+.dg-group-block.dg-color-pink {
+  background: var(--dg-block-pink);
+}
+
+.dg-group-block.dg-color-coral {
+  background: var(--dg-block-coral);
+}
+
+.dg-group-block.dg-color-navy {
+  background: var(--dg-block-navy);
+}
+
+.dg-group-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 0 18px;
+}
+
+.dg-group-title,
+.dg-group-chip {
+  font-family: var(--dg-font-mono);
+  font-weight: 500;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.dg-group-title {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dg-group-chip {
+  flex: none;
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .08);
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.dg-group-frame .dg-group-chip {
+  background: var(--dg-frame-chip-bg);
+}
+
+.dg-group-block.dg-color-navy .dg-group-title {
+  color: var(--dg-inverse-ink);
+}
+
+.dg-group-block.dg-color-navy .dg-group-chip {
+  background: rgba(255, 255, 255, .16);
+  color: var(--dg-inverse-ink);
+}
+
+.dg-group-aws {
+  border: 1px solid var(--dg-ink);
+  border-radius: 0;
+  background: var(--dg-canvas);
+}
+
+.dg-group-aws[data-group-id='aw-plugin'] {
+  border-width: 1.5px;
+}
+
+.dg-group-aws .dg-group-header {
+  padding-right: 12px;
+  padding-left: 12px;
+}
+
+.dg-group-aws .dg-group-chip {
+  background: var(--dg-frame-chip-bg);
+}
+
+.dg-group-glyph {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--dg-ink);
+  border-radius: 3px;
+  font-family: var(--dg-font-mono);
+  font-size: 8px;
+  font-weight: 500;
+}
+
+.dg-group-aws.is-lane {
+  border-style: dashed;
+  border-color: var(--dg-ink);
+}
+
+.dg-group-aws.is-lane.dg-color-lime {
+  background: rgba(220, 238, 177, .35);
+}
+
+.dg-group-aws.is-lane.dg-color-cream {
+  background: rgba(244, 236, 214, .35);
+}
+
+.dg-group-aws.is-lane.dg-color-pink {
+  background: rgba(239, 212, 212, .35);
+}
+
+.dg-group-aws.is-lane.dg-color-coral {
+  background: rgba(243, 201, 182, .35);
+}
+
+/* ---- Text scale ------------------------------------------------------
+   ONE mechanism at two scopes: --dg-text-scale is set on .dg-canvas for the
+   global stepper, --dg-node-text-scale inline on a single node for a per-card
+   override, and every node-internal font-size below is written as the product
+   of the two. Layout multiplies the SAME factors into its measurement
+   (layout.ts measureDiagramNode), because card titles and subtitles are
+   two-line -webkit-line-clamp boxes: scale the type without scaling the box
+   and the second line is silently cut away.
+
+   Deliberately NOT scaled: control chips, status chips, owner tags and the
+   workflow chip tiles. Those are fixed-size chrome with their own reserved
+   rows, and growing their type inside a fixed tile clips it. */
+
+.dg-canvas {
+  --dg-text-scale: 1;
+}
+
+.react-flow__node {
+  --dg-type-scale: calc(var(--dg-text-scale, 1) * var(--dg-node-text-scale, 1));
+}
+
+/* Scaled type spills past its own card and every leaf sits at z-index 10, so
+   within a dense patch the later card in DOM order paints over a neighbour's
+   overflow. Lifting the hovered node above its siblings makes any one card
+   readable in full on demand, which is the trade accepted when the box was
+   frozen and the type left free to grow. */
+.dg-canvas .react-flow__node:hover { z-index: 20; }
+
+/* Two-level component cards */
+
+.dg-node-card {
+  color: var(--dg-node-ink, var(--dg-card-ink));
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  flex-direction: column;
+  padding: 10px 14px;
+  border: 1.5px solid var(--dg-card-hairline);
+  border-radius: 8px;
+  background: var(--dg-card-surface);
+  color: var(--dg-node-ink, var(--dg-card-ink));
+  transition: border-color 140ms ease, border-width 140ms ease, opacity 140ms ease;
+}
+
+.dg-node-card.is-light-island {
+  --dg-card-surface: var(--dg-island-canvas);
+  --dg-card-ink: var(--dg-island-ink);
+  --dg-card-hairline: var(--dg-island-hairline);
+}
+
+.dg-node-card.is-primary,
+.dg-node-card.is-selected {
+  border: 2px solid var(--dg-card-ink);
+}
+
+.dg-node-card.is-neighbor {
+  border: 2px solid var(--dg-neighbor);
+}
+
+.dg-node-card.is-dim {
+  opacity: .22;
+}
+
+.dg-node-eyebrow {
+  margin-bottom: 3px;
+  font-family: var(--dg-font-mono);
+  font-size: calc(9.5px * var(--dg-type-scale, 1));
+  font-weight: 500;
+  letter-spacing: .06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.dg-node-title {
+  display: -webkit-box;
+  /* No clamp and no `overflow: hidden`: the card box is authored geometry and
+     scaled type is MEANT to spill past it, PowerPoint-style. `flex: none` is
+     still load-bearing — as a flex item in the card's column this box would
+     otherwise be squeezed below its own content. */
+  flex: none;
+  font-size: calc(13px * var(--dg-type-scale, 1));
+  font-weight: 600;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+}
+
+.dg-node-subtitle {
+  display: -webkit-box;
+  flex: none;
+  margin-top: 2px;
+  font-size: calc(11px * var(--dg-type-scale, 1));
+  font-weight: 400;
+  line-height: 1.22;
+  -webkit-box-orient: vertical;
+}
+
+.dg-handle {
+  width: 6px !important;
+  height: 6px !important;
+  border: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* AWS icon tiles */
+
+.dg-aws-node {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  flex-direction: column;
+  color: var(--dg-ink);
+  text-align: center;
+  transition: opacity 140ms ease;
+}
+
+.dg-aws-glyph {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--dg-island-ink);
+  border-radius: 6px;
+  background: var(--dg-aws-tile-soft);
+  color: var(--dg-island-ink);
+  font-family: var(--dg-font-mono);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.dg-aws-node.dg-color-lime .dg-aws-glyph {
+  background: var(--dg-block-lime);
+}
+
+.dg-aws-node.dg-color-cream .dg-aws-glyph {
+  background: var(--dg-block-cream);
+}
+
+.dg-aws-node.dg-color-pink .dg-aws-glyph {
+  background: var(--dg-block-pink);
+}
+
+.dg-aws-node.dg-color-coral .dg-aws-glyph {
+  background: var(--dg-block-coral);
+}
+
+.dg-aws-node.is-primary .dg-aws-glyph,
+.dg-aws-node.is-selected .dg-aws-glyph {
+  border: 2px solid var(--dg-island-ink);
+}
+
+.dg-aws-node.is-neighbor .dg-aws-glyph {
+  border: 2px solid var(--dg-neighbor);
+}
+
+.dg-aws-node.is-active .dg-aws-glyph {
+  outline: 3px solid var(--dg-accent-magenta);
+  outline-offset: 3px;
+}
+
+.dg-aws-node.is-dim {
+  opacity: .22;
+}
+
+.dg-aws-label {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 7px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.15;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Edges and callouts */
+
+.dg-edge-path {
+  fill: none;
+  transition: opacity 140ms ease, stroke 140ms ease, stroke-width 140ms ease;
+}
+
+.dg-floating-edge {
+  stroke: var(--dg-ink);
+  stroke-width: 1.5px;
+  opacity: .55;
+}
+
+.dg-floating-edge.is-island {
+  stroke: var(--dg-island-ink);
+}
+
+.dg-floating-edge.is-active {
+  stroke-width: 2.25px;
+  opacity: 1;
+}
+
+.dg-floating-edge.is-dim {
+  opacity: .12;
+}
+
+.dg-edge-path.is-loop,
+.dg-edge-path.is-ref {
+  stroke-dasharray: 6 4;
+}
+
+.dg-aws-edge {
+  stroke: var(--dg-edge);
+  stroke-width: 1.25px;
+  opacity: 1;
+}
+
+.dg-aws-edge.is-bold {
+  stroke-width: 3;
+}
+
+.dg-aws-edge.is-active {
+  stroke: var(--dg-ink);
+  stroke-width: 2.25px;
+}
+
+.dg-aws-edge.is-dim {
+  opacity: .12;
+}
+
+/* React Flow gives an edge that touches an emphasis node an inline z-index of
+   11, which paints the edge path OVER the label layer and reads as a
+   strikethrough through the chip. Lift the whole label renderer above it. */
+.react-flow__edgelabel-renderer {
+  z-index: 20;
+}
+
+.dg-edge-label {
+  position: absolute;
+  z-index: 20; /* above cards; the control-chip row shares this rule */
+  width: max-content;
+  /* Scales with the SAME two factors the placer's estimator scales its line
+     box by (useEdgeRoutes.estimateLabelRect). A fixed 240px here against a
+     scaled estimate made the estimator predict fewer lines than the browser
+     renders, which is the under-estimate the placer exists to avoid. */
+  max-width: calc(240px * var(--dg-text-scale, 1) * var(--dg-label-scale, 1));
+  padding: 3px 10px;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 14px;
+  background: var(--dg-edge-label-bg);
+  color: var(--dg-ink);
+  font-family: var(--dg-font-mono);
+  /* Edge labels take the canvas scale and a per-label override, set inline
+     from persist.edges[id].labelScale. */
+  font-size: calc(9.5px * var(--dg-text-scale, 1) * var(--dg-label-scale, 1));
+  font-weight: 500;
+  letter-spacing: .06em;
+  line-height: 1.5;
+  pointer-events: none;
+  text-align: center;
+  text-transform: uppercase;
+  /* Long labels wrap into a centred multi-line chip; nowrap made them collide. */
+  white-space: normal;
+}
+
+.dg-edge-label.is-active {
+  font-weight: 700;
+}
+
+.dg-edge-label.is-island {
+  border-color: var(--dg-island-hairline);
+  background: var(--dg-island-canvas);
+  color: var(--dg-island-ink);
+}
+
+.dg-edge-label.is-dim {
+  opacity: .12;
+}
+
+.dg-edge-label.is-editable {
+  cursor: grab;
+  pointer-events: all;
+  touch-action: none;
+  user-select: none;
+}
+
+.dg-edge-label.is-editable:active {
+  cursor: grabbing;
+}
+
+.dg-edge-edit-handle {
+  position: absolute;
+  z-index: 7;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 1.5px solid var(--dg-ink);
+  border-radius: 50%;
+  background: var(--dg-canvas);
+  color: var(--dg-ink);
+  cursor: grab;
+  pointer-events: all;
+  touch-action: none;
+}
+
+.dg-edge-edit-handle:active {
+  cursor: grabbing;
+}
+
+.dg-edge-edit-handle:focus-visible {
+  outline: 2px solid var(--dg-accent-magenta);
+  outline-offset: 2px;
+}
+
+.dg-edge-midpoint-handle {
+  width: 9px;
+  height: 9px;
+  border-color: var(--dg-neighbor);
+  opacity: .62;
+}
+
+.dg-edge-waypoint-handle {
+  background: var(--dg-ink);
+}
+
+.dg-edge-label-aws {
+  border-radius: 3px;
+  font-size: 8.5px;
+}
+
+.dg-step-marker {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  outline: 0;
+  background: var(--dg-step-fill);
+  color: var(--dg-step-ink);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: all;
+}
+
+.dg-step-marker.is-active {
+  outline: 3px solid var(--dg-accent-magenta);
+  outline-offset: 2px;
+}
+
+.dg-step-marker.is-dim {
+  opacity: .12;
+}
+
+/* ---- Embed mode (?embed=<diagramId>) ---- */
+
+.dg-app.is-embed {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.dg-topbar.is-embed {
+  justify-content: flex-end;
+  padding: 0 14px;
+}
+
+.dg-topbar.is-embed .dg-topbar-actions {
+  flex: none;
+}
+
+.dg-body.is-embed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.dg-body.is-embed .dg-canvas {
+  border-right: 0;
+}
+
+/* ---- Expandable node notes (embed mode only) ---- */
+
+.dg-node-note {
+  position: absolute;
+  bottom: -9px;
+  left: 10px;
+  z-index: 30;
+  transform: translateY(100%);
+}
+
+.dg-aws-node .dg-node-note {
+  left: 50%;
+  transform: translate(-50%, 100%);
+}
+
+.dg-note-chip {
+  padding: 2px 8px;
+  border: 1px solid var(--dg-card-hairline);
+  border-radius: 999px;
+  background: var(--dg-card-surface);
+  color: var(--dg-card-ink);
+  cursor: pointer;
+  font-family: var(--dg-font-mono);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: .05em;
+  line-height: 1.5;
+  pointer-events: all;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dg-note-chip:hover,
+.dg-note-chip:focus-visible {
+  border-color: var(--dg-card-ink);
+  outline: none;
+}
+
+.dg-note-card {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 60;
+  width: max-content;
+  max-width: 260px;
+  padding: 12px 14px;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 10px;
+  background: var(--dg-canvas);
+  color: var(--dg-ink);
+  font-size: 11.5px;
+  line-height: 1.45;
+  pointer-events: all;
+}
+
+.dg-aws-node .dg-note-card {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.dg-note-card p {
+  margin: 0;
+}
+
+.dg-note-citations {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--dg-hairline-soft);
+}
+
+.dg-note-citations code {
+  overflow-wrap: anywhere;
+  color: var(--dg-neighbor);
+  font-family: var(--dg-font-mono);
+  font-size: 9.5px;
+  line-height: 1.35;
+}
+
+/* Right rail */
+
+.dg-detail-panel,
+.dg-steps-panel {
+  /* Sized by the host column, not by a fixed 300px, so the same panel fits
+     the resizable right rail and the narrower merged rail alike. */
+  width: 100%;
+  max-width: 340px;
+  flex: none;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 8px;
+  background: var(--dg-canvas);
+}
+
+.dg-detail-panel {
+  min-height: 88px;
+  padding: 18px;
+}
+
+.dg-detail-panel h2,
+.dg-steps-panel h2 {
+  color: var(--dg-ink);
+  font-weight: 600;
+}
+
+.dg-detail-panel h2 {
+  margin: 6px 0 4px;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.dg-detail-empty,
+.dg-detail-role,
+.dg-detail-copy {
+  margin: 0;
+  color: var(--dg-ink);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.dg-detail-copy {
+  margin-top: 10px;
+}
+
+.dg-note-citations .dg-citations-list {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.dg-citations {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--dg-hairline-soft);
+}
+
+.dg-citations code {
+  overflow-wrap: anywhere;
+  color: var(--dg-ink);
+  font-family: var(--dg-font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.dg-citations .dg-citations-list {
+  display: grid;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+/* Citations are hidden by default (v1.5): a small mono toggle reveals them. */
+.dg-citations-toggle {
+  appearance: none;
+  border: 1px solid var(--dg-hairline-soft);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dg-neighbor);
+  font-family: var(--dg-font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.dg-citations-toggle:hover,
+.dg-citations-toggle:focus-visible {
+  color: var(--dg-ink);
+  border-color: var(--dg-ink);
+}
+
+.dg-citations code {
+  overflow-wrap: anywhere;
+  color: var(--dg-ink);
+  font-family: var(--dg-font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.dg-detail-steps {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 14px 0 0;
+  font-family: var(--dg-font-mono);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.dg-steps-panel {
+  overflow: hidden;
+}
+
+.dg-steps-panel header {
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--dg-hairline);
+}
+
+.dg-steps-panel h2 {
+  margin: 5px 0 0;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.dg-steps-panel ol {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dg-steps-panel li + li {
+  border-top: 1px solid var(--dg-hairline-soft);
+}
+
+.dg-steps-panel button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 9px;
+  padding: 10px 12px;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: var(--dg-canvas);
+  color: var(--dg-ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.dg-steps-panel button:hover,
+.dg-steps-panel button:focus-visible {
+  background: var(--dg-surface-soft);
+  outline: none;
+}
+
+.dg-steps-panel button.is-active {
+  border-left-color: var(--dg-ink);
+  background: var(--dg-surface-soft);
+}
+
+.dg-step-number {
+  font-family: var(--dg-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.dg-step-text {
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.42;
+}
+
+.dg-step-text strong {
+  font-weight: 600;
+}
+
+@media (max-width: 980px) {
+  .dg-brand span {
+    display: none;
+  }
+
+  .dg-body {
+    /* Must keep reading --dg-side-w. Hard-coding a width here re-introduced
+       a permanent 316px column under 980px even with the inspector hidden,
+       and ignored a resized width (cross-vendor review, 2026-09-15). The
+       narrow viewport caps the column instead of replacing it. */
+    grid-template-columns: auto minmax(0, 1fr) min(var(--dg-side-w, 0px), 316px);
+  }
+
+  .dg-side-rail {
+    padding: 12px 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dg-node-card,
+  .dg-aws-node,
+  .dg-edge-path {
+    transition: none;
+  }
+}
+
+/* ---- Edit mode + toolbar (added 2026-08-06) ---- */
+
+.dg-canvas.is-editing .react-flow__node-diagramGroup {
+  pointer-events: all !important;
+  cursor: grab;
+}
+
+.dg-canvas.is-editing .react-flow__node-diagramNode,
+.dg-canvas.is-editing .react-flow__node-awsTile {
+  cursor: grab;
+}
+
+.dg-canvas.is-editing .react-flow__node.selected .dg-card,
+.dg-canvas.is-editing .react-flow__node.selected .dg-aws-tile {
+  outline: 2px solid var(--dg-ink);
+  outline-offset: 2px;
+}
+
+.dg-canvas.is-editing .react-flow__node-diagramGroup.selected .dg-group {
+  outline: 1.5px dashed var(--dg-ink);
+  outline-offset: 2px;
+}
+
+.dg-edit-hint {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  z-index: 8;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 999px;
+  background: var(--dg-surface);
+  color: var(--dg-ink-soft);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.dg-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dg-tool {
+  padding: 6px 12px;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 999px;
+  background: var(--dg-surface);
+  color: var(--dg-ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 550;
+  line-height: 1;
+}
+
+.dg-tool:hover,
+.dg-tool:focus-visible {
+  border-color: var(--dg-ink);
+}
+
+.dg-tool.is-active {
+  border-color: var(--dg-ink);
+  background: var(--dg-ink);
+  color: var(--dg-surface);
+}
+
+.dg-tool:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+
+.dg-spacing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dg-spacing-value {
+  min-width: 44px;
+  color: var(--dg-ink-soft);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  text-align: center;
+}
+
+.dg-download {
+  position: relative;
+}
+
+.dg-download-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  min-width: 230px;
+  padding: 6px;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 12px;
+  background: var(--dg-surface);
+  box-shadow: none;
+}
+
+.dg-download-menu button {
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dg-ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.dg-download-menu button:hover,
+.dg-download-menu button:focus-visible {
+  background: var(--dg-surface-soft);
+}
+
+/* ---- Settings menu, canvas tools, style bar (added 2026-09-15) ---- */
+
+.dg-tool-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.dg-tool-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.6;
+}
+
+.dg-text-scale-value {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* The host theme bridge clicks .dg-theme-toggle from outside the iframe, so
+   the element stays in the DOM while the visible control lives in the menu.
+   Hidden from sight and from the tab order, still clickable by script. */
+.dg-theme-toggle-host {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.dg-menu-host {
+  position: relative;
+}
+
+.dg-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  display: flex;
+  width: 272px;
+  max-height: min(70vh, 560px);
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 12px;
+  background: var(--dg-surface);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .14);
+}
+
+.dg-menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 0;
+}
+
+.dg-menu-group + .dg-menu-group {
+  border-top: 1px solid var(--dg-hairline-soft);
+}
+
+.dg-menu-heading {
+  padding: 4px 10px 6px;
+  color: var(--dg-ink-soft);
+  font-family: var(--dg-font-mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.dg-menu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dg-ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.dg-menu button:hover:not(:disabled),
+.dg-menu button:focus-visible {
+  background: var(--dg-surface-soft);
+}
+
+.dg-menu button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.dg-menu button.dg-menu-sub {
+  padding-left: 22px;
+}
+
+/* A checked item is marked by a tick rather than by colour alone. */
+.dg-menu button.is-checked::after {
+  content: '✓';
+  font-size: 12px;
+}
+
+.dg-menu-hint {
+  color: var(--dg-ink-soft);
+  font-family: var(--dg-font-mono);
+  font-size: 9.5px;
+}
+
+.dg-menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  font-size: 12.5px;
+}
+
+.dg-menu-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dg-menu-stepper button {
+  width: 24px;
+  height: 24px;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 50%;
+}
+
+/* Canvas tools */
+
+.dg-canvas .react-flow__minimap {
+  border: 1px solid var(--dg-hairline);
+  border-radius: 8px;
+  background: var(--dg-surface);
+}
+
+.dg-zoom-panel {
+  margin: 12px;
+}
+
+.dg-zoom-panel.has-controls {
+  /* Clears the four-button controls stack that owns the same corner. */
+  margin-top: 132px;
+}
+
+.dg-zoom-readout {
+  padding: 4px 9px;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 999px;
+  background: var(--dg-surface);
+  color: var(--dg-ink-soft);
+  cursor: pointer;
+  font-family: var(--dg-font-mono);
+  font-size: 10px;
+  letter-spacing: .04em;
+}
+
+.dg-zoom-readout:hover,
+.dg-zoom-readout:focus-visible {
+  border-color: var(--dg-ink);
+  color: var(--dg-ink);
+}
+
+/* Style bar — 1px inside the canvas border, top right, clear of the tool
+   cluster top-left and the settings gear in the header above. */
+
+.dg-style-bar {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  z-index: 9;
+  display: flex;
+  width: 296px;
+  max-height: calc(100% - 2px);
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 0 0 0 12px;
+  background: var(--dg-surface);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .12);
+}
+
+.dg-style-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--dg-font-mono);
+  font-size: 9.5px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.dg-style-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dg-style-label {
+  color: var(--dg-ink-soft);
+  font-family: var(--dg-font-mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.dg-style-swatches,
+.dg-style-sizes {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.dg-style-swatch {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dg-style-swatch:hover,
+.dg-style-swatch:focus-within {
+  border-color: var(--dg-ink);
+}
+
+.dg-style-swatch-custom {
+  display: grid;
+  background: var(--dg-surface-soft);
+  color: var(--dg-ink-soft);
+  font-size: 12px;
+  line-height: 1;
+  place-items: center;
+}
+
+.dg-style-swatch-custom input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.dg-style-size,
+.dg-style-default {
+  padding: 3px 8px;
+  border: 1px solid var(--dg-hairline);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dg-ink);
+  cursor: pointer;
+  font-family: var(--dg-font-mono);
+  font-size: 9.5px;
+}
+
+.dg-style-size:hover,
+.dg-style-default:hover,
+.dg-style-size:focus-visible,
+.dg-style-default:focus-visible {
+  border-color: var(--dg-ink);
+}
+
+/* Edit mode, edges. The rule this replaces surrendered ALL edge pointer
+   events, because the invisible 20px hit corridor swallowed group-drag
+   pointer-downs (interactionWidth: 0 is falsy — React Flow substitutes 20).
+   That defect was found in the field, so the protection is kept by three
+   narrower means rather than dropped:
+     1. groups sit ABOVE the edge layer in edit mode (buildGraph zIndex),
+        so a pointer-down over a region reaches the region;
+     2. the corridor narrows to 10px in edit mode (FloatingDiagramEdge);
+     3. `pointer-events: stroke` confines hits to that corridor's stroke
+        rather than the path's filled bounding area.
+   The visible path itself stays inert; the interaction path is the target. */
+.dg-canvas.is-editing .react-flow__edge-path,
+.dg-canvas.is-editing .dg-edge-path {
+  pointer-events: none;
+}
+
+.dg-canvas.is-editing .react-flow__edge-interaction {
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+/* Nothing in the stylesheet marked a selected EDGE — only selected nodes —
+   so without this you cannot see which relationship you are about to
+   recolour. */
+.dg-canvas.is-editing .react-flow__edge.selected .dg-edge-path,
+.dg-canvas.is-editing .dg-edge-path.is-selected {
+  stroke: var(--dg-accent-magenta);
+  stroke-width: 3px;
+  opacity: 1;
+}
+
+.dg-canvas.is-editing .react-flow__edge.selected .dg-edge-label,
+.dg-canvas.is-editing .react-flow__edge.selected .dg-edge-annotation {
+  border-color: var(--dg-accent-magenta);
+  box-shadow: 0 0 0 2px var(--dg-accent-magenta);
+}
+
+/* A per-edge colour override paints the label's border to match its line. */
+.dg-edge-label[style*="--dg-edge-ink"],
+.dg-edge-annotation[style*="--dg-edge-ink"] {
+  border-color: var(--dg-edge-ink);
+}
+
+/* ---------- pyramid dialect ---------- */
+
+:root {
+  --dg-pyr-heading-ink: #14323e;
+  --dg-pyr-axis-ink: #2c4a58;
+  --dg-pyr-on-dark-ink: #eef3f0;
+  --dg-pyr-on-dark-lead: #f2e3c4;
+  --dg-pyr-on-light-ink: #1d3a48;
+  --dg-pyr-on-light-lead: #102a36;
+}
+
+:root[data-theme='dark'] {
+  --dg-pyr-heading-ink: #e3ecf1;
+  --dg-pyr-axis-ink: #9db4c0;
+  --dg-pyr-on-light-ink: #1d3a48;
+  --dg-pyr-on-light-lead: #102a36;
+}
+
+.dg-pyr-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(16, 42, 54, 0.18);
+  transition: opacity 160ms ease, box-shadow 160ms ease;
+}
+
+.dg-pyr-bar-line {
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.dg-pyr-bar-line strong {
+  font-weight: 650;
+}
+
+.dg-pyr-bar.is-on-dark { color: var(--dg-pyr-on-dark-ink); }
+.dg-pyr-bar.is-on-dark strong { color: var(--dg-pyr-on-dark-lead); }
+.dg-pyr-bar.is-on-light { color: var(--dg-pyr-on-light-ink); }
+.dg-pyr-bar.is-on-light strong { color: var(--dg-pyr-on-light-lead); }
+
+.dg-pyr-bar.is-dim { opacity: 0.3; }
+.dg-pyr-bar.is-selected {
+  box-shadow: 0 0 0 2px var(--dg-ink), 0 2px 6px rgba(16, 42, 54, 0.18);
+}
+
+.dg-pyr-chrome {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.dg-pyr-heading h2 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--dg-pyr-heading-ink);
+}
+
+.dg-pyr-heading p {
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: var(--dg-pyr-axis-ink);
+}
+
+.dg-pyr-axis {
+  position: absolute;
+  left: 18px;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  color: var(--dg-pyr-axis-ink);
+}
+
+.dg-pyr-axis-label {
+  align-self: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--dg-font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Pyramid bars: tuck the embed notes chip inside the bar's right end and
+   open the card below-right, instead of the card-node dangle position. */
+.dg-pyr-bar .dg-node-note {
+  bottom: auto;
+  left: auto;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.dg-pyr-bar .dg-note-card {
+  right: 0;
+  left: auto;
+}
+
+/* ---------- controls-and-ownership overlay ---------- */
+/* Ownership is INK ONLY — border style and a mono chip. The palette already
+   spends fill colour on diagram emphasis, and a second colour system on top
+   of it reads as noise. Customer solid, supplier dashed, everywhere.
+   These rules are theme-agnostic: every colour is currentColor or a token
+   defined in both theme blocks above, so there is no dark-mode variant. */
+
+.dg-group-badges {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.has-group-metadata .dg-group-header {
+  flex-wrap: wrap;
+  align-content: center;
+  row-gap: 8px;
+}
+
+.has-group-metadata .dg-group-title { flex: 1; }
+.has-group-metadata .dg-group-badges { flex-basis: 100%; }
+.dg-group-badges:empty { display: none; }
+
+.dg-owner-chip,
+.dg-owner-tag,
+.dg-status-chip,
+.dg-control-chip {
+  flex: none;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font-family: var(--dg-font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+.dg-owner-chip { padding: 2px 6px; }
+.dg-owner-chip.is-customer { border-style: solid; }
+.dg-owner-chip.is-supplier { border-style: dashed; }
+.dg-owner-tag {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  padding: 0 4px;
+  font-size: 8px;
+}
+.dg-owner-tag.is-supplier { border-style: dashed; }
+.dg-status-chip { padding: 0 4px; font-size: 8px; }
+.dg-node-status { display: flex; align-items: center; flex: none; }
+.dg-group.is-to-confirm,
+.dg-node-card.is-to-confirm,
+.dg-aws-node.is-to-confirm {
+  border: 1.5px dashed currentColor;
+}
+.dg-aws-node.is-to-confirm .dg-aws-glyph { border-style: dashed; }
+.dg-group-block.dg-color-navy { color: var(--dg-inverse-ink); }
+.dg-group-aws.is-lane.dg-color-soft { background: var(--dg-surface-soft); }
+
+.dg-control-chips {
+  display: grid;
+  flex: none;
+  grid-template-columns: repeat(2, max-content);
+  align-items: center;
+  justify-content: start;
+  column-gap: 4px;
+  color: inherit;
+}
+.dg-control-chip { justify-self: start; padding: 1px 6px; font-size: 8px; }
+.dg-aws-node > .dg-control-chips { justify-content: center; }
+
+/* An edge that carries control tags but no label: chips only, no pill. */
+.dg-edge-annotation {
+  position: absolute;
+  z-index: 20;
+  color: var(--dg-ink);
+  pointer-events: none;
+}
+.dg-edge-annotation.is-dim { opacity: .12; }
+.dg-edge-label > .dg-control-chips,
+.dg-edge-annotation > .dg-control-chips {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  z-index: 20;
+  transform: translateX(-50%);
+  width: max-content;
+  letter-spacing: normal;
+}
+.dg-edge-label .dg-control-chip,
+.dg-edge-annotation .dg-control-chip {
+  background: var(--dg-edge-label-bg);
+}
+.dg-edge-label.is-island .dg-control-chip { background: var(--dg-island-canvas); }
+
+/* The in-canvas legend: chrome, never interactive. */
+.dg-legend {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--dg-hairline);
+  background: var(--dg-surface-soft);
+  color: var(--dg-ink);
+  pointer-events: none;
+  overflow-wrap: anywhere;
+}
+.react-flow__node-legendChrome { pointer-events: none !important; }
+.dg-legend h2 { margin: 0 0 20px; font-size: 20px; line-height: 26px; }
+.dg-legend-groups { display: grid; align-items: start; }
+.dg-legend h3 {
+  margin: 0 0 16px;
+  font-family: var(--dg-font-mono);
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+}
+.dg-legend-item { margin-bottom: 16px; }
+.dg-legend-item p { margin: 0; font-size: 11px; line-height: 18px; }
+.dg-legend-item strong { font-family: var(--dg-font-mono); font-size: 10px; }
+.dg-legend-item .dg-legend-analogy { margin-top: 4px; opacity: .7; line-height: 17px; }
+.dg-legend-item .dg-legend-admin { font-family: var(--dg-font-mono); font-size: 9px; line-height: 14px; opacity: .7; }
+
+.dg-detail-owner { margin: 6px 0; font-size: 11px; line-height: 1.4; }
+.dg-detail-owner span { display: block; opacity: .7; }
+.dg-detail-controls { margin-top: 14px; }
+.dg-detail-controls p { margin: 6px 0 0; font-size: 12px; line-height: 1.45; }
+.dg-detail-controls code { font-family: var(--dg-font-mono); font-size: 10px; }
+
+/* ---------- csdm dialect (the CSDM v5 domain quilt) ---------- */
+/* Region colours are SEMANTIC here — each patch is a CSDM domain — so they
+   are identical in both themes (the islands-stay-light rule). Only the frame
+   around them inverts. Every colour below is a token; a hex literal in a
+   component would be a finding. Region hexes are sampled from the source
+   render, not guessed. */
+
+:root {
+  --csdm-ink: #2d4b57;
+  --csdm-card: #ffffff;
+  --csdm-build: #a02b93;
+  --csdm-design: #0f9ed5;
+  --csdm-ideation: #4ea72e;
+  --csdm-delivery: #f19714;
+  --csdm-consumption: #54c45e;
+  --csdm-foundation: #e9e9e9;
+  --csdm-portfolio: #ffffff;
+  --csdm-sub: rgba(255, 255, 255, .35);
+  --csdm-catalog: #156082;
+  --csdm-region-text: #ffffff;
+  --csdm-foundation-text: var(--csdm-ink);
+  --csdm-hub-ring: rgba(45, 75, 87, .18);
+  --csdm-ghost: rgba(255, 255, 255, .92);
+  /* Role figures sit in the GUTTER, on the frame rather than on a patch, so
+     their ink follows the frame and inverts with it. The patches do not. */
+  --csdm-gutter-ink: var(--csdm-ink);
+}
+
+:root[data-theme='dark'] {
+  --csdm-foundation: #d8d8d8;
+  --csdm-hub-ring: rgba(45, 75, 87, .3);
+  --csdm-gutter-ink: #e8eef1;
+}
+
+.dg-canvas .react-flow__node-csdmRegion,
+.dg-canvas .react-flow__node-csdmHub {
+  pointer-events: none !important;
+}
+
+.dg-canvas .react-flow__node-csdmCard {
+  cursor: pointer;
+}
+
+.dg-canvas.is-editing .react-flow__node-csdmRegion {
+  pointer-events: all !important;
+  cursor: grab;
+}
+
+.dg-canvas.is-editing .react-flow__node-csdmCard {
+  cursor: grab;
+}
+
+.dg-canvas.is-editing .react-flow__node-csdmRegion.selected .dg-csdm-region {
+  outline: 1.5px dashed var(--csdm-ink);
+  outline-offset: 2px;
+}
+
+.dg-canvas.is-editing .react-flow__node.selected .dg-csdm-card {
+  outline: 2px solid var(--csdm-ink);
+  outline-offset: 2px;
+}
+
+/* Regions */
+
+.dg-csdm-region {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  color: var(--csdm-region-text);
+}
+
+.dg-csdm-build { background: var(--csdm-build); }
+.dg-csdm-design { background: var(--csdm-design); }
+.dg-csdm-ideation { background: var(--csdm-ideation); }
+.dg-csdm-delivery { background: var(--csdm-delivery); }
+.dg-csdm-consumption { background: var(--csdm-consumption); }
+
+.dg-csdm-foundation {
+  background: var(--csdm-foundation);
+  color: var(--csdm-foundation-text);
+}
+
+.dg-csdm-region.is-sub {
+  background: var(--csdm-sub);
+  border: 1px solid var(--csdm-ink);
+  color: var(--csdm-ink);
+}
+
+.dg-csdm-region.is-sub.is-catalog {
+  border-color: var(--csdm-catalog);
+  background: var(--csdm-catalog);
+  color: var(--csdm-region-text);
+}
+
+.dg-csdm-region.is-to-confirm {
+  border: 1.6px dashed var(--csdm-ink);
+}
+
+.dg-csdm-region-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 18px 0;
+}
+
+.dg-csdm-region-titlerow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dg-csdm-region-title {
+  /* Wraps rather than running on: a region title that overflowed sideways
+     would leave its own patch, while wrapping spills downward over the cards
+     below it, which is the accepted PowerPoint behaviour. */
+  min-width: 0;
+  font-family: var(--dg-font-mono);
+  font-size: calc(12px * var(--dg-type-scale, 1));
+  font-weight: 600;
+  letter-spacing: .08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.dg-csdm-region.is-sub .dg-csdm-region-title {
+  font-size: calc(10.5px * var(--dg-type-scale, 1));
+  font-style: italic;
+  letter-spacing: .05em;
+  text-transform: none;
+}
+
+.dg-csdm-region .dg-status-chip {
+  flex: none;
+  margin-left: auto;
+}
+
+.dg-csdm-icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+/* Workflow chips: small square tiles along the region's top edge. They live
+   INSIDE the header band, which layout already reserves and the edge-label
+   placer already treats as one obstacle. */
+
+.dg-csdm-chips {
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.dg-csdm-chip {
+  display: flex;
+  width: 96px;
+  height: 52px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border: 1.5px solid var(--csdm-ink);
+  border-radius: 6px;
+  background: var(--csdm-card);
+  color: var(--csdm-ink);
+  font-family: var(--dg-font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: .03em;
+  line-height: 1.25;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Entity cards */
+
+.dg-csdm-cell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.dg-csdm-ghost {
+  position: absolute;
+  border: 1.2px solid var(--csdm-ink);
+  border-radius: 6px;
+  background: var(--csdm-ghost);
+}
+
+.dg-csdm-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 1.4px solid var(--csdm-ink);
+  border-radius: 6px;
+  background: var(--csdm-card);
+  color: var(--dg-node-ink, var(--csdm-ink));
+  transition: border-color 140ms ease, opacity 140ms ease;
+}
+
+.dg-csdm-card.is-primary,
+.dg-csdm-card.is-selected {
+  border-width: 2.4px;
+}
+
+.dg-csdm-card.is-neighbor {
+  border-width: 2px;
+  border-style: dashed;
+}
+
+.dg-csdm-card.is-dim {
+  opacity: .3;
+}
+
+.dg-csdm-card.is-to-confirm {
+  border-style: dashed;
+}
+
+.dg-csdm-card.is-cloud,
+.dg-csdm-card.is-chevron {
+  border: 0;
+  background: transparent;
+}
+
+.dg-csdm-shape {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  fill: var(--csdm-card);
+  stroke: var(--csdm-ink);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+
+.dg-csdm-card.is-to-confirm .dg-csdm-shape {
+  stroke-dasharray: 6 4;
+}
+
+.dg-csdm-card-body {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.dg-csdm-card-title {
+  display: -webkit-box;
+  /* No clamp and no `overflow: hidden`: the card box is authored geometry and
+     the type inside it scales independently, spilling past the border rather
+     than growing or truncating the card. `flex: none` is still load-bearing —
+     as a flex item this box would otherwise get min-height: 0 and be squeezed
+     below its own content by the card's fixed height. */
+  flex: none;
+  font-size: calc(12.5px * var(--dg-type-scale, 1));
+  font-weight: 600;
+  line-height: 1.22;
+  text-align: center;
+  -webkit-box-orient: vertical;
+}
+
+.dg-csdm-card-subtitle {
+  display: -webkit-box;
+  flex: none;
+  font-size: calc(10.5px * var(--dg-type-scale, 1));
+  font-weight: 400;
+  line-height: 1.2;
+  text-align: center;
+  -webkit-box-orient: vertical;
+}
+
+.dg-csdm-card .dg-control-chips {
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.dg-csdm-card .dg-node-status {
+  justify-content: center;
+}
+
+/* Role figures: a person glyph and a label, in the gutter beside the region.
+   Figures carry no edges — they are the source's way of naming who owns the
+   row, not another entity. */
+
+.dg-csdm-figure {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  gap: 8px;
+  color: var(--csdm-gutter-ink);
+}
+
+.dg-csdm-figure.is-inset {
+  color: var(--csdm-ink);
+}
+
+.dg-csdm-figure.is-dim {
+  opacity: .3;
+}
+
+.dg-csdm-figure-glyph {
+  width: 24px;
+  height: 30px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.dg-csdm-figure-label {
+  display: -webkit-box;
+  /* NOT `flex: none` — unlike the card title, this sits in a ROW flex
+     container beside the glyph, where refusing to shrink makes a long role
+     name run off on one line instead of wrapping to two. `min-width: 0` is
+     the pair that lets it shrink to the gutter and wrap. No clamp: extra
+     lines spill below the figure rather than being cut away. */
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: calc(11px * var(--dg-type-scale, 1));
+  font-weight: 600;
+  line-height: 1.2;
+  -webkit-box-orient: vertical;
+}
+
+/* The Manage Portfolio hub */
+
+.dg-csdm-hub {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  border: 1.5px solid var(--csdm-hub-ring);
+  border-radius: 50%;
+  background: var(--csdm-portfolio);
+  color: var(--csdm-ink);
+}
+
+.dg-csdm-hub-title {
+  font-family: var(--dg-font-mono);
+  font-size: calc(13px * var(--dg-type-scale, 1));
+  font-weight: 600;
+  letter-spacing: .08em;
+  line-height: 1.25;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.dg-csdm-hub .dg-csdm-icon {
+  width: 38px;
+  height: 38px;
+}
+
+/* Edges over the quilt keep the source's one ink in both themes. */
+
+.dg-dialect-csdm .dg-floating-edge {
+  stroke: var(--csdm-ink);
+  stroke-width: 1.6px;
+  opacity: .92;
+}
+
+.dg-dialect-csdm .dg-floating-edge.is-active {
+  stroke-width: 2.4px;
+  opacity: 1;
+}
+
+.dg-dialect-csdm .dg-floating-edge.is-dim {
+  opacity: .14;
+}
+
+.dg-dialect-csdm .dg-edge-label {
+  border-color: var(--csdm-hub-ring);
+  background: var(--csdm-card);
+  color: var(--csdm-ink);
+}
+
+/* ── lifecycle dialect ───────────────────────────────────────────────────
+   Figure 2 of the ServiceNow CSDM 5 white paper, reproduced. Every colour
+   here is sampled from the source figure at 300 dpi; the chevron fills are
+   authored per stage in the data, because the figure's palette IS the
+   specification for this dialect. The frame and band tokens invert for the
+   dark theme, the chevron islands stay light — the house rule. */
+
+:root {
+  --lc-rule: #64a8ba;
+  --lc-tab-fill: #f2f3f5;
+  --lc-frame-fill: #ffffff;
+  --lc-band-fill: #dfe3e8;
+  --lc-ink: #1b1b1c;
+  --lc-bus: #6b6f73;
+}
+
+[data-theme='dark'] {
+  --lc-rule: #4d7a86;
+  --lc-tab-fill: #22262a;
+  --lc-frame-fill: #16191c;
+  --lc-band-fill: #2a2f34;
+  --lc-ink: #e8eaec;
+  --lc-bus: #9aa1a7;
+}
+
+.dg-lc-chrome {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.dg-lc-tab {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  background: var(--lc-tab-fill);
+  border: 1px solid var(--lc-rule);
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+}
+
+/* The four rules below read --dg-type-scale like every other canvas text:
+   the size stepper's scope is ALL canvas text, and a dialect whose labels
+   ignored it would make the control look broken on this tab alone. At the
+   default scale the calc() resolves to the authored px, so the 1:1
+   reproduction of the source figure is untouched. */
+.dg-lc-tab span {
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  font-size: calc(13px * var(--dg-type-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--lc-ink);
+}
+
+.dg-lc-frame {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  background: var(--lc-frame-fill);
+  border: 1px solid var(--lc-rule);
+  border-radius: 3px;
+}
+
+.dg-lc-frame-title {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  font-size: calc(13px * var(--dg-type-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--lc-ink);
+}
+
+/* Chevron: flat left edge, point on the right. The outline sits one pixel
+   out behind the face so the silhouette keeps the figure's hairline without
+   a border fighting the clip-path. */
+.dg-lc-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.dg-lc-stage-outline,
+.dg-lc-stage-face {
+  position: absolute;
+  inset: 0;
+}
+
+.dg-lc-stage-outline {
+  inset: -1px -1px -1px -1px;
+  background: #5f6368;
+  /* The default brand has no shadows; the source figure's chevrons do, as a
+     soft 4px ramp under the border. Reproducing it is the exception. */
+  filter: drop-shadow(0 2px 2px rgba(31, 35, 38, 0.24));
+}
+
+.dg-lc-stage-face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: 18px;
+}
+
+.dg-lc-stage-label {
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  /* Sized to the SOURCE's cap-height ratio (0.229 of the chevron height),
+     not to a round number: 13px measured 0.188 and read as under-filled. */
+  font-size: calc(16px * var(--dg-type-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-align: center;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.dg-lc-stage.ink-dark .dg-lc-stage-label { color: #1b1b1c; }
+.dg-lc-stage.ink-light .dg-lc-stage-label { color: #ffffff; }
+
+.dg-lc-stage.is-dim { opacity: 0.38; }
+.dg-lc-stage.is-selected .dg-lc-stage-outline,
+.dg-lc-stage.is-active .dg-lc-stage-outline { background: var(--ink, #111); inset: -3px; }
+
+.dg-lc-handle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dg-lc-band {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background: var(--lc-band-fill);
+  border: 1px solid var(--lc-rule);
+  border-radius: 3px;
+}
+
+.dg-lc-band-label {
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  font-size: calc(13px * var(--dg-type-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--lc-ink);
+}
+
+.dg-lc-band.is-dim { opacity: 0.38; }
+.dg-lc-band.is-selected,
+.dg-lc-band.is-active { border-color: var(--ink, #111); }
+
+.react-flow__edge.dg-lc-bus-edge { pointer-events: none; }
+
+path.dg-lc-bus {
+  fill: none;
+  stroke: var(--lc-bus);
+  stroke-width: 1.4px;
+}
+
+path.dg-lc-bus.is-dim { opacity: 0.35; }
+path.dg-lc-bus.is-active { stroke: var(--ink, #111); stroke-width: 2px; }
+
+/* The embed-mode notes affordance defaults to hanging BELOW its card, which
+   in this dialect is exactly where the feedback bus runs. Inside the chevron,
+   at its flat left edge, is the one place it crosses nothing. */
+.dg-lc-stage .dg-node-note,
+.dg-lc-band .dg-node-note {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  z-index: 5;
+}
+
+.dg-lc-stage .dg-note-chip,
+.dg-lc-band .dg-note-chip {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  font-size: 11px;
+  line-height: 1;
+  border-radius: 50%;
+  /* This dialect reproduces a published figure, and the exporter drives embed
+     mode: a chip visible at rest puts six affordances into a PNG the source
+     does not have. Hover and keyboard focus still reveal it, so the notes are
+     not lost — only the picture is kept honest. */
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.dg-lc-stage:hover .dg-note-chip,
+.dg-lc-band:hover .dg-note-chip,
+.dg-lc-stage .dg-note-chip:focus-visible,
+.dg-lc-band .dg-note-chip:focus-visible,
+.dg-lc-stage .dg-note-chip[aria-expanded='true'],
+.dg-lc-band .dg-note-chip[aria-expanded='true'] { opacity: 1; }
+
+.dg-lc-stage .dg-note-card,
+.dg-lc-band .dg-note-card {
+  top: 26px;
+  left: 0;
+}
+
+/* A reproduction's export should be the figure on the figure's own ground.
+   The dot grid is canvas furniture that the source page does not have, and
+   the exporter crops to the node bounds plus a margin, so it lands in the
+   PNG. Scoped to this dialect: every other dialect keeps its canvas. */
+.dg-canvas.dg-dialect-lifecycle .react-flow__background { display: none; }

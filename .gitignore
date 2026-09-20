@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+coverage/
+tmp/
+arc-diagram-mcp-*.tgz
+
+# Generated diagram projects carry their own ignore rules.
+examples/generated/

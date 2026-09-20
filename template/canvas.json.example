@@ -1,0 +1,11 @@
+{
+  "board": "~/dev/sn-board-astro",
+  "id": "my-diagram-set",
+  "file": "my-diagram-set.html",
+  "branch": { "id": "architecture-demo", "label": "Architecture demo" },
+  "label": "Human-readable label shown in the canvas tree",
+  "family": "dg",
+  "confidential": "tier2",
+  "caps": { "theme": true, "download": "in-bundle", "edit": true, "embed": true, "minimap": true },
+  "source": "~/dev/<this-app-folder>"
+}

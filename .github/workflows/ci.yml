@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Generate and compile an example diagram application
+        run: |
+          node dist/index.js create examples/minimal-project.json "$RUNNER_TEMP/arc-diagram-example"
+          cd "$RUNNER_TEMP/arc-diagram-example"
+          npm install
+          npm run build
+          npm run build:offline
+          npm run lint:text

@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "arc-diagram": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/arc-diagram-mcp/dist/index.js"
+      ]
+    }
+  }
+}
