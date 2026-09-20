@@ -2,9 +2,9 @@
 
 An MCP server that creates polished, interactive architecture-diagram applications instead of returning a diagram string.
 
-## Example: Netflix “Press play”
+## Example: Netflix streaming architecture
 
-[![Complete arc-diagram interface showing an illustrative Netflix streaming architecture and its eight-step runtime narrative](docs/images/netflix-arc-diagram-ui.png)](docs/images/netflix-arc-diagram-ui.png)
+[![Complete arc-diagram interface showing an illustrative Netflix application architecture](docs/images/netflix-application-architecture-ui.png)](docs/images/netflix-application-architecture-ui.png)
 
 The [complete Netflix example](examples/netflix-project.json) generates three connected views: system context, application architecture, and the numbered runtime journey from pressing play to Open Connect delivery. It is an illustrative reconstruction from public material—not a claim to reproduce Netflix's full internal design—grounded in the [Open Connect overview](https://openconnect.netflix.com/), [appliance and software architecture](https://openconnect.netflix.com/en/appliances/), and [AWS case study](https://aws.amazon.com/solutions/case-studies/innovators/netflix/).
 
